@@ -9,11 +9,14 @@ import backgroundImg from "../../assets/background.png";
 import { Button } from "../../components/Button";
 
 import { ANDROID_CLIENT_ID, IOS_CLIENT_ID } from "@env";
+import { Realm, useApp } from "@realm/react";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export function SignIn() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  const app = useApp();
 
   const [_, response, googleSignIn] = Google.useAuthRequest({
     androidClientId: ANDROID_CLIENT_ID,
@@ -34,11 +37,15 @@ export function SignIn() {
   useEffect(() => {
     if (response?.type === "success") {
       if (response.authentication?.idToken) {
-        fetch(
-          `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${response.authentication.idToken}`
-        )
-          .then((response) => response.json())
-          .then(console.log);
+        const credentials = Realm.Credentials.jwt(
+          response.authentication.idToken
+        );
+
+        app.logIn(credentials).catch((error) => {
+          console.log(error);
+          Alert.alert("Entrar", "Não foi possível conectar a conta Google");
+          setIsAuthenticating(false);
+        });
       } else {
         Alert.alert("Entrar", "Não foi possível conectar a conta Google");
         setIsAuthenticating(false);
