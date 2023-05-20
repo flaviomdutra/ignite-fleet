@@ -11,9 +11,10 @@ import theme from "./src/theme";
 
 import { REALM_APP_ID } from "@env";
 
-import { Home } from "./src/screens/Home";
 import { SignIn } from "./src/screens/SignIn";
 import { Loading } from "./src/components/Loading";
+import { Routes } from "./src/routes";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -28,14 +29,16 @@ export default function App() {
   return (
     <AppProvider id={REALM_APP_ID}>
       <ThemeProvider theme={theme}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        />
-        <UserProvider fallback={SignIn}>
-          <Home />
-        </UserProvider>
+        <SafeAreaProvider>
+          <StatusBar
+            barStyle="light-content"
+            backgroundColor="transparent"
+            translucent
+          />
+          <UserProvider fallback={SignIn}>
+            <Routes />
+          </UserProvider>
+        </SafeAreaProvider>
       </ThemeProvider>
     </AppProvider>
   );
