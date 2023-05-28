@@ -1,6 +1,7 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import {
+  AsyncMessage,
   Container,
   Content,
   Description,
@@ -87,6 +88,11 @@ export function Arrival() {
           <Button title="Registrar chegada" onPress={handleArrivalRegister} />
         </Footer>
       )}
+
+      <AsyncMessage>
+        Sincronização da
+        {historic?.status === "departure" ? "partida" : "chegada"} pendente.
+      </AsyncMessage>
     </Container>
   );
 }
