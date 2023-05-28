@@ -18,18 +18,24 @@ import { useObject, useRealm } from "../../libs/realm";
 import { Historic } from "../../libs/realm/schemas/Historic";
 import { BSON } from "realm";
 import { Alert } from "react-native";
+import { useEffect, useState } from "react";
+import { getLastAsyncTimestamp } from "../../libs/asyncStorage/syncStorage";
 
 type RouteParamProps = {
   id: string;
 };
 
 export function Arrival() {
+  const [dataNotSynced, setDataNotSynced] = useState(false);
+
   const route = useRoute();
   const { id } = route.params as RouteParamProps;
   const { goBack } = useNavigation();
 
   const realm = useRealm();
   const historic = useObject(Historic, new BSON.UUID(id));
+
+  const title = historic?.status === "departure" ? "Chegada" : "Detalhes";
 
   function handleRemoveVehicleUsage() {
     Alert.alert("Cancelar", "Cancelar a utilização do veiculo?", [
@@ -67,7 +73,11 @@ export function Arrival() {
     }
   }
 
-  const title = historic?.status === "departure" ? "Chegada" : "Detalhes";
+  useEffect(() => {
+    getLastAsyncTimestamp().then((lastSync) =>
+      setDataNotSynced(historic!.updated_at.getTime() > lastSync)
+    );
+  }, []);
 
   return (
     <Container>
@@ -89,10 +99,12 @@ export function Arrival() {
         </Footer>
       )}
 
-      <AsyncMessage>
-        Sincronização da
-        {historic?.status === "departure" ? "partida" : "chegada"} pendente.
-      </AsyncMessage>
+      {dataNotSynced && (
+        <AsyncMessage>
+          Sincronização da{" "}
+          {historic?.status === "departure" ? "partida" : "chegada"} pendente.
+        </AsyncMessage>
+      )}
     </Container>
   );
 }
