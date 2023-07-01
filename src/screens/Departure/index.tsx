@@ -15,11 +15,13 @@ import { LicensePlateInput } from "../../components/LicensePlateInput";
 
 import { Container, Content, Message } from "./styles";
 import { getAddressLocation } from "../../utils/getAddressLocation";
+import { Loading } from "../../components/Loading";
 
 export function Departure() {
   const [description, setDescription] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
   const [locationForegroundPermission, requestLocationForegroundPermission] = useForegroundPermissions();
 
@@ -84,9 +86,9 @@ export function Departure() {
       accuracy: LocationAccuracy.High,
       timeInterval: 1000,
     }, (location) => {
-      console.log(location)
       getAddressLocation(location.coords)
-      .then(address => console.log(address))
+        .then(address => console.log(address))
+        .finally(() => setIsLoadingLocation(false))
     }).then(response => subscription = response)
 
     return () => subscription?.remove()
@@ -103,6 +105,10 @@ export function Departure() {
         </Message>
       </Container>
     )
+  }
+
+  if (isLoadingLocation) {
+    return <Loading />
   }
 
   return (
