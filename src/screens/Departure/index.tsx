@@ -3,7 +3,7 @@ import { Alert, ScrollView, TextInput } from "react-native";
 import { useUser } from "@realm/react";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useForegroundPermissions } from "expo-location";
+import { LocationSubscription, LocationAccuracy, useForegroundPermissions, watchPositionAsync } from "expo-location";
 import { useRealm } from "../../libs/realm";
 import { Historic } from "../../libs/realm/schemas/Historic";
 import { licensePlateValidate } from "../../utils/licensePlateValidate";
@@ -14,6 +14,7 @@ import { TextAreaInput } from "../../components/TextAreaInput";
 import { LicensePlateInput } from "../../components/LicensePlateInput";
 
 import { Container, Content, Message } from "./styles";
+import { getAddressLocation } from "../../utils/getAddressLocation";
 
 export function Departure() {
   const [description, setDescription] = useState("");
@@ -73,6 +74,23 @@ export function Departure() {
   useEffect(() => {
     requestLocationForegroundPermission()
   }, [])
+
+  useEffect(() => {
+    if (!locationForegroundPermission?.granted) { return }
+
+    let subscription: LocationSubscription
+
+    watchPositionAsync({
+      accuracy: LocationAccuracy.High,
+      timeInterval: 1000,
+    }, (location) => {
+      console.log(location)
+      getAddressLocation(location.coords)
+      .then(address => console.log(address))
+    }).then(response => subscription = response)
+
+    return () => subscription?.remove()
+  }, [locationForegroundPermission])
 
   if (!locationForegroundPermission?.granted) {
     return (
