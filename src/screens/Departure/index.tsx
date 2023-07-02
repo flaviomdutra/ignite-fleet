@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { LocationSubscription, LocationAccuracy, useForegroundPermissions, watchPositionAsync } from "expo-location";
+import { LocationSubscription, LocationAccuracy, useForegroundPermissions, watchPositionAsync, LocationObjectCoords } from "expo-location";
 import { Car } from "phosphor-react-native";
 
 import { useUser } from "@realm/react";
@@ -19,7 +19,7 @@ import { LocationInfo } from "../../components/LocationInfo";
 import { Container, Content, Message } from "./styles";
 import { licensePlateValidate } from "../../utils/licensePlateValidate";
 import { getAddressLocation } from "../../utils/getAddressLocation";
-
+import { Map } from "../../components/Map";
 
 export function Departure() {
   const [description, setDescription] = useState("");
@@ -27,6 +27,7 @@ export function Departure() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
+  const [currentCoords, setCurrentCoords] = useState<LocationObjectCoords | null>(null);
 
   const [locationForegroundPermission, requestLocationForegroundPermission] = useForegroundPermissions();
 
@@ -91,6 +92,8 @@ export function Departure() {
       accuracy: LocationAccuracy.High,
       timeInterval: 1000,
     }, (location) => {
+      setCurrentCoords(location.coords)
+
       getAddressLocation(location.coords)
         .then(address => {
           if (address) {
@@ -126,8 +129,9 @@ export function Departure() {
 
       <KeyboardAwareScrollView extraHeight={100}>
         <ScrollView>
-          <Content>
+          {currentCoords && <Map coordinates={[currentCoords]} />}
 
+          <Content>
             {
               currentAddress &&
               <LocationInfo
