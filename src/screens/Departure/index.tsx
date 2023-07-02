@@ -1,27 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, TextInput } from "react-native";
-import { useUser } from "@realm/react";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { LocationSubscription, LocationAccuracy, useForegroundPermissions, watchPositionAsync } from "expo-location";
+import { Car } from "phosphor-react-native";
+
+import { useUser } from "@realm/react";
 import { useRealm } from "../../libs/realm";
 import { Historic } from "../../libs/realm/schemas/Historic";
-import { licensePlateValidate } from "../../utils/licensePlateValidate";
 
 import { Header } from "../../components/Header";
 import { Button } from "../../components/Button";
 import { TextAreaInput } from "../../components/TextAreaInput";
 import { LicensePlateInput } from "../../components/LicensePlateInput";
+import { Loading } from "../../components/Loading";
+import { LocationInfo } from "../../components/LocationInfo";
 
 import { Container, Content, Message } from "./styles";
+import { licensePlateValidate } from "../../utils/licensePlateValidate";
 import { getAddressLocation } from "../../utils/getAddressLocation";
-import { Loading } from "../../components/Loading";
+
 
 export function Departure() {
   const [description, setDescription] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [currentAddress, setCurrentAddress] = useState<string | null>(null);
 
   const [locationForegroundPermission, requestLocationForegroundPermission] = useForegroundPermissions();
 
@@ -87,7 +92,11 @@ export function Departure() {
       timeInterval: 1000,
     }, (location) => {
       getAddressLocation(location.coords)
-        .then(address => console.log(address))
+        .then(address => {
+          if (address) {
+            setCurrentAddress(address)
+          }
+        })
         .finally(() => setIsLoadingLocation(false))
     }).then(response => subscription = response)
 
@@ -118,6 +127,15 @@ export function Departure() {
       <KeyboardAwareScrollView extraHeight={100}>
         <ScrollView>
           <Content>
+
+            {
+              currentAddress &&
+              <LocationInfo
+                icon={Car}
+                label="Localização atual"
+                description={currentAddress}
+              />
+            }
             <LicensePlateInput
               ref={licensePlateRef}
               label="Placa do veículo"
